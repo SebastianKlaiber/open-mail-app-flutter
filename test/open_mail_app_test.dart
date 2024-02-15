@@ -9,19 +9,17 @@ void main() {
   const channel = MethodChannel('open_mail_app');
   final log = <MethodCall>[];
 
-  channel.setMockMethodCallHandler((MethodCall methodCall) async {
-    log.add(methodCall);
-    if (methodCall.method == 'openMailApp') {
-      return true;
-    }
-    return null;
-  });
+  tearDown(log.clear);
 
-  tearDown(() {
-    log.clear();
-  });
+  testWidgets('openMailApp Android', (tester) async {
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (call) async {
+      log.add(call);
+      if (call.method == 'openMailApp') {
+        return true;
+      }
+      return null;
+    });
 
-  test('openMailApp Android', () async {
     OpenMailApp.platform = FakePlatform(operatingSystem: Platform.android);
     final result = await OpenMailApp.openMailApp();
     expect(result.didOpen, true);

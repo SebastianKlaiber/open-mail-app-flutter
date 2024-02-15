@@ -13,3 +13,4 @@
   [SwiftOpenMailAppPlugin registerWithRegistrar:registrar];
 }
 @end
+
