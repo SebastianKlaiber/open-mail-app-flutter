@@ -1,5 +1,6 @@
 package com.homex.open_mail_app
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.LabeledIntent
@@ -19,64 +20,50 @@ class OpenMailAppPlugin : FlutterPlugin, MethodCallHandler {
     private lateinit var channel: MethodChannel
     private lateinit var applicationContext: Context
 
-    override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+    override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         // Although getFlutterEngine is deprecated we still need to use it for
         // apps not updated to Flutter Android v2 embedding
-        channel = MethodChannel(flutterPluginBinding.flutterEngine.dartExecutor, "open_mail_app")
+        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "open_mail_app")
         channel.setMethodCallHandler(this)
-        init(flutterPluginBinding.applicationContext)
+        applicationContext = flutterPluginBinding.applicationContext
     }
 
-    // This static function is optional and equivalent to onAttachedToEngine. It supports the old
-    // pre-Flutter-1.12 Android projects. You are encouraged to continue supporting
-    // plugin registration via this function while apps migrate to use the new Android APIs
-    // post-flutter-1.12 via https://flutter.dev/go/android-project-migration.
-    //
-    // It is encouraged to share logic between onAttachedToEngine and registerWith to keep
-    // them functionally equivalent. Only one of onAttachedToEngine or registerWith will be called
-    // depending on the user's project. onAttachedToEngine or registerWith must both be defined
-    // in the same class.
-    companion object {
-        @JvmStatic
-        fun registerWith(registrar: Registrar) {
-            val channel = MethodChannel(registrar.messenger(), "open_mail_app")
-            val plugin = OpenMailAppPlugin()
-            channel.setMethodCallHandler(plugin)
-            plugin.init(registrar.context())
+
+    override fun onMethodCall(call: MethodCall, result: Result) {
+
+        when {
+            call.method == "openMailApp" -> {
+                val opened = emailAppIntent(call.argument("nativePickerTitle") ?: "")
+                result.success(opened)
+            }
+            call.method == "openSpecificMailApp" && call.hasArgument("name") -> {
+                val opened = specificEmailAppIntent(call.argument("name")!!)
+                result.success(opened)
+            }
+            call.method == "composeNewEmailInMailApp" -> {
+                val opened = composeNewEmailAppIntent(call.argument("nativePickerTitle") ?: "", call.argument("emailContent") ?: "")
+                result.success(opened)
+            }
+            call.method == "composeNewEmailInSpecificMailApp" -> {
+                val opened = composeNewEmailInSpecificEmailAppIntent(call.argument("name") ?: "", call.argument("emailContent") ?: "")
+                result.success(opened)
+            }
+            call.method == "getMainApps" -> {
+                val apps = getInstalledMailApps()
+                val appsJson = Gson().toJson(apps)
+                result.success(appsJson)
+            }
+            else -> {
+                result.notImplemented()
+            }
         }
     }
 
-    fun init(context: Context) {
-        applicationContext = context
-    }
-
-    override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-        if (call.method == "openMailApp") {
-            val opened = emailAppIntent(call.argument("nativePickerTitle") ?: "")
-            result.success(opened)
-        } else if (call.method == "openSpecificMailApp" && call.hasArgument("name")) {
-            val opened = specificEmailAppIntent(call.argument("name")!!)
-            result.success(opened)
-        } else if (call.method == "composeNewEmailInMailApp") {
-            val opened = composeNewEmailAppIntent(call.argument("nativePickerTitle") ?: "", call.argument("emailContent") ?: "")
-            result.success(opened)
-        } else if (call.method == "composeNewEmailInSpecificMailApp") {
-            val opened = composeNewEmailInSpecificEmailAppIntent(call.argument("name") ?: "", call.argument("emailContent") ?: "")
-            result.success(opened)
-        } else if (call.method == "getMainApps") {
-            val apps = getInstalledMailApps()
-            val appsJson = Gson().toJson(apps)
-            result.success(appsJson)
-        } else {
-            result.notImplemented()
-        }
-    }
-
-    override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
     }
 
-    private fun emailAppIntent(@NonNull chooserTitle: String): Boolean {
+    private fun emailAppIntent(chooserTitle: String): Boolean {
         val emailIntent = Intent(Intent.ACTION_VIEW, Uri.parse("mailto:"))
         val packageManager = applicationContext.packageManager
 
@@ -113,7 +100,7 @@ class OpenMailAppPlugin : FlutterPlugin, MethodCallHandler {
         }
     }
 
-    private fun composeNewEmailAppIntent(@NonNull chooserTitle: String, @NonNull contentJson: String): Boolean {
+    private fun composeNewEmailAppIntent(chooserTitle: String, contentJson: String): Boolean {
         val packageManager = applicationContext.packageManager
         val emailContent = Gson().fromJson(contentJson, EmailContent::class.java)
         val emailIntent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:"))
@@ -183,7 +170,7 @@ class OpenMailAppPlugin : FlutterPlugin, MethodCallHandler {
         return true
     }
 
-    private fun composeNewEmailInSpecificEmailAppIntent(@NonNull name: String, @NonNull contentJson: String): Boolean {
+    private fun composeNewEmailInSpecificEmailAppIntent(name: String, contentJson: String): Boolean {
         val packageManager = applicationContext.packageManager
         val emailContent = Gson().fromJson(contentJson, EmailContent::class.java)
         val emailIntent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:"))
@@ -233,7 +220,6 @@ data class App(
 )
 
 data class EmailContent (
-
         @SerializedName("to") val to: List<String>,
         @SerializedName("cc") val cc: List<String>,
         @SerializedName("bcc") val bcc: List<String>,
