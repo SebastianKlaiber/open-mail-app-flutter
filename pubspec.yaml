@@ -10,9 +10,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  platform: ^3.1.2
-  url_launcher: ^6.2.4
-  very_good_analysis: ^5.1.0
+  platform: ^3.1.5
+  url_launcher: ^6.3.0
+  very_good_analysis: ^6.0.0
 
 dev_dependencies:
   flutter_test:
