@@ -12,7 +12,6 @@ dependencies:
     sdk: flutter
   platform: ^3.1.6
   url_launcher: ^6.3.1
-  very_good_analysis: ^7.0.0
 
 dev_dependencies:
   flutter_test:
