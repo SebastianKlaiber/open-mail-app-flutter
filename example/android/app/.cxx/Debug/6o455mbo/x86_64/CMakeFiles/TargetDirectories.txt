@@ -1,0 +1,2 @@
+/Users/sebastianklaiber/Dev/open-mail-app-flutter/example/android/app/.cxx/Debug/6o455mbo/x86_64/CMakeFiles/edit_cache.dir
+/Users/sebastianklaiber/Dev/open-mail-app-flutter/example/android/app/.cxx/Debug/6o455mbo/x86_64/CMakeFiles/rebuild_cache.dir
