@@ -1,11 +1,9 @@
 package com.homex.open_mail_app
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.LabeledIntent
 import android.net.Uri
-import androidx.annotation.NonNull
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 
@@ -14,15 +12,12 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.plugin.common.PluginRegistry.Registrar
 
 class OpenMailAppPlugin : FlutterPlugin, MethodCallHandler {
     private lateinit var channel: MethodChannel
     private lateinit var applicationContext: Context
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        // Although getFlutterEngine is deprecated we still need to use it for
-        // apps not updated to Flutter Android v2 embedding
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "open_mail_app")
         channel.setMethodCallHandler(this)
         applicationContext = flutterPluginBinding.applicationContext
